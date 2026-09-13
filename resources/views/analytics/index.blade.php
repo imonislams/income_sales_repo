@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
-        Analytics & Reports
+        Analytics
     </x-slot>
 
     <div class="space-y-8">
         <!-- Date Filter Bar -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm print:hidden">
-            <form method="GET" action="{{ route('reports.index') }}" class="flex flex-col md:flex-row md:items-end gap-4" id="analytics-filter-form">
+            <form method="GET" action="{{ route('analytics.index') }}" class="flex flex-col md:flex-row md:items-end gap-4" id="analytics-filter-form">
                 <div class="flex-1">
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Timeframe Filter</label>
                     <select name="filter" onchange="document.getElementById('custom-date-container').style.display = this.value === 'custom' ? 'flex' : 'none';" class="w-full rounded-xl border-slate-200 text-sm focus:border-indigo-500 focus:ring-indigo-500">
@@ -109,7 +109,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Income by Category Table -->
             <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                <h3 class="font-bold text-slate-900 text-base mb-4">Income by Category</h3>
+                <h3 class="font-bold text-slate-900 text-base mb-4">INCOME BY CATEGORY</h3>
                 @if(count($incomeCategoryTable) === 0)
                     <p class="text-sm text-slate-400 text-center py-6">No income recorded for this period.</p>
                 @else
@@ -136,7 +136,7 @@
 
             <!-- Expense by Category Table -->
             <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                <h3 class="font-bold text-slate-900 text-base mb-4">Expense by Category</h3>
+                <h3 class="font-bold text-slate-900 text-base mb-4">EXPENSE BY CATEGORY</h3>
                 @if(count($expenseCategoryTable) === 0)
                     <p class="text-sm text-slate-400 text-center py-6">No expense recorded for this period.</p>
                 @else

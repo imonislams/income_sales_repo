@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
@@ -24,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class)->except(['show']);
     Route::resource('payment-methods', PaymentMethodController::class)->except(['show']);
 
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
