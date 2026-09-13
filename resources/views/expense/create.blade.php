@@ -26,15 +26,15 @@
                     @error('amount') <p class="text-xs text-rose-500 mt-1 font-medium">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Category -->
+                <!-- Category Text Input with Datalist -->
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">Category <span class="text-rose-500">*</span></label>
-                    <select name="category" required class="w-full rounded-xl border-slate-200 text-slate-900 focus:border-rose-500 focus:ring-rose-500">
-                        <option value="" disabled selected>Select Category</option>
+                    <input type="text" name="category" list="category-list" value="{{ old('category') }}" placeholder="Type category name..." required class="w-full rounded-xl border-slate-200 text-slate-900 focus:border-rose-500 focus:ring-rose-500">
+                    <datalist id="category-list">
                         @foreach($categories as $cat)
-                            <option value="{{ $cat }}" {{ old('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                            <option value="{{ $cat }}"></option>
                         @endforeach
-                    </select>
+                    </datalist>
                     @error('category') <p class="text-xs text-rose-500 mt-1 font-medium">{{ $message }}</p> @enderror
                 </div>
 
@@ -55,12 +55,12 @@
 
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-1.5">Payment Method</label>
-                        <select name="payment_method" class="w-full rounded-xl border-slate-200 text-slate-900 focus:border-rose-500 focus:ring-rose-500">
-                            <option value="">Select Method</option>
+                        <input type="text" name="payment_method" list="payment-method-list" value="{{ old('payment_method') }}" placeholder="e.g. Cash, Bank..." class="w-full rounded-xl border-slate-200 text-slate-900 focus:border-rose-500 focus:ring-rose-500">
+                        <datalist id="payment-method-list">
                             @foreach($paymentMethods as $pm)
-                                <option value="{{ $pm }}" {{ old('payment_method') === $pm ? 'selected' : '' }}>{{ $pm }}</option>
+                                <option value="{{ $pm }}"></option>
                             @endforeach
-                        </select>
+                        </datalist>
                         @error('payment_method') <p class="text-xs text-rose-500 mt-1 font-medium">{{ $message }}</p> @enderror
                     </div>
                 </div>
