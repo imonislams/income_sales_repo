@@ -6,7 +6,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class ReportController extends Controller
+class AnalyticsController extends Controller
 {
     public function index(Request $request)
     {
@@ -149,7 +149,7 @@ class ReportController extends Controller
             "Your average monthly expense is ৳" . number_format($avgMonthlyExpense, 2) . ".",
         ];
 
-        return view('reports.index', compact(
+        return view('analytics.index', compact(
             'filter',
             'startDate',
             'endDate',
