@@ -7,7 +7,6 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,7 +25,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('payment-methods', PaymentMethodController::class)->except(['show']);
 
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports', function () {
+        return redirect()->route('analytics.index');
+    })->name('reports.index');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
