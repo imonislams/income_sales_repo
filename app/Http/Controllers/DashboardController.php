@@ -1,152 +1,83 @@
-```php
 <?php
 
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         $userId = auth()->id();
+        $today = now()->format('Y-m-d');
+        $currentMonth = now()->format('Y-m');
+        $currentYear = now()->year;
 
-        // ==============================
-        // TOTAL INCOME
-        // ==============================
+        // Base query scoped to auth user
+        $baseQuery = Transaction::where('user_id', $userId);
 
-        $totalIncome = Transaction::where('user_id', $userId)
-            ->where('type', 'income')
-            ->sum('amount');
+        $totalIncome = (clone $baseQuery)->where('type', 'income')->sum('amount');
+        $totalExpense = (clone $baseQuery)->where('type', 'expense')->sum('amount');
+        $totalBalance = $totalIncome - $totalExpense;
 
+        $todayIncome = (clone $baseQuery)->where('type', 'income')->whereDate('date', $today)->sum('amount');
+        $todayExpense = (clone $baseQuery)->where('type', 'expense')->whereDate('date', $today)->sum('amount');
 
-        // ==============================
-        // TOTAL EXPENSE
-        // ==============================
-
-        $totalExpense = Transaction::where('user_id', $userId)
-            ->where('type', 'expense')
-            ->sum('amount');
-
-
-        // ==============================
-        // TOTAL BALANCE
-        // ==============================
-
-        $balance = $totalIncome - $totalExpense;
-
-
-        // ==============================
-        // TODAY INCOME
-        // ==============================
-
-        $todayIncome = Transaction::where('user_id', $userId)
-            ->where('type', 'income')
-            ->whereDate('date', today())
-            ->sum('amount');
-
-
-        // ==============================
-        // TODAY EXPENSE
-        // ==============================
-
-        $todayExpense = Transaction::where('user_id', $userId)
-            ->where('type', 'expense')
-            ->whereDate('date', today())
-            ->sum('amount');
-
-
-        // ==============================
-        // MONTHLY INCOME
-        // ==============================
-
-        $monthlyIncome = Transaction::where('user_id', $userId)
-            ->where('type', 'income')
-            ->whereMonth('date', now()->month)
-            ->whereYear('date', now()->year)
-            ->sum('amount');
-
-
-        // ==============================
-        // MONTHLY EXPENSE
-        // ==============================
-
-        $monthlyExpense = Transaction::where('user_id', $userId)
-            ->where('type', 'expense')
-            ->whereMonth('date', now()->month)
-            ->whereYear('date', now()->year)
-            ->sum('amount');
-
-
-        // ==============================
-        // MONTHLY BALANCE
-        // ==============================
-
+        $monthlyIncome = (clone $baseQuery)->where('type', 'income')->where('date', 'like', "$currentMonth%")->sum('amount');
+        $monthlyExpense = (clone $baseQuery)->where('type', 'expense')->where('date', 'like', "$currentMonth%")->sum('amount');
         $monthlyBalance = $monthlyIncome - $monthlyExpense;
 
+        // Recent 10 transactions
+        $recentTransactions = (clone $baseQuery)->latest('date')->latest('id')->take(10)->get();
 
-        // ==============================
-        // RECENT TRANSACTIONS
-        // ==============================
+        // Income vs Expense chart data for current year (12 months)
+        $monthlyChart = [
+            'months' => ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            'income' => array_fill(0, 12, 0),
+            'expense' => array_fill(0, 12, 0),
+        ];
 
-        $recentTransactions = Transaction::where('user_id', $userId)
-            ->latest('date')
-            ->latest('id')
-            ->take(10)
+        $driver = DB::connection()->getDriverName();
+        $monthSql = $driver === 'sqlite' ? 'strftime("%m", date)' : 'MONTH(date)';
+
+        $yearTransactions = (clone $baseQuery)
+            ->whereYear('date', $currentYear)
+            ->selectRaw("type, {$monthSql} as month, SUM(amount) as total")
+            ->groupBy('type', DB::raw($monthSql))
             ->get();
 
-
-        // ==============================
-        // MONTHLY CHART
-        // ==============================
-
-        $monthlyChart = [];
-
-        for ($month = 1; $month <= 12; $month++) {
-
-            $income = Transaction::where('user_id', $userId)
-                ->where('type', 'income')
-                ->whereMonth('date', $month)
-                ->whereYear('date', now()->year)
-                ->sum('amount');
-
-            $expense = Transaction::where('user_id', $userId)
-                ->where('type', 'expense')
-                ->whereMonth('date', $month)
-                ->whereYear('date', now()->year)
-                ->sum('amount');
-
-            $monthlyChart[] = [
-                'income' => (float) $income,
-                'expense' => (float) $expense,
-            ];
+        foreach ($yearTransactions as $row) {
+            $monthIndex = (int)$row->month - 1;
+            if ($monthIndex >= 0 && $monthIndex < 12) {
+                if ($row->type === 'income') {
+                    $monthlyChart['income'][$monthIndex] = (float)$row->total;
+                } else {
+                    $monthlyChart['expense'][$monthIndex] = (float)$row->total;
+                }
+            }
         }
 
-
-        // ==============================
-        // EXPENSE CATEGORY CHART
-        // ==============================
-
-        $categoryData = Transaction::where('user_id', $userId)
+        // Expense category distribution
+        $expenseCategories = (clone $baseQuery)
             ->where('type', 'expense')
             ->selectRaw('category, SUM(amount) as total')
             ->groupBy('category')
-            ->orderByDesc('total')
             ->get();
 
-
         return view('dashboard', compact(
+            'totalBalance',
             'totalIncome',
             'totalExpense',
-            'balance',
+            'monthlyBalance',
             'todayIncome',
             'todayExpense',
             'monthlyIncome',
             'monthlyExpense',
-            'monthlyBalance',
             'recentTransactions',
             'monthlyChart',
-            'categoryData'
+            'expenseCategories'
         ));
     }
 }
